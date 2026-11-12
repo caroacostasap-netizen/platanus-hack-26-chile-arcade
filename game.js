@@ -1,6 +1,6 @@
-// ¡Comprá tu auto! — Platanus Hack 26 Arcade Challenge
-// Juego educativo: el circuito de SAP para comprar un auto en Argentina.
-// Pasos: Pedido, Fábrica, Camión, Factura, Chapita y Llaves.
+// ¡Compra tu auto! — Platanus Hack 26 Arcade Challenge
+// Juego educativo: el circuito de SAP para comprar un auto en Chile.
+// Pasos: Pedido, Fábrica, Camión, Factura, Patente y Llaves.
 // Módulos: SD, PP, MM, QM, LE, FI y CO. Para 1 o 2 jugadores.
 
 const W = 800, H = 600;
@@ -87,25 +87,25 @@ const MK = Object.keys(MOD);
 // b globo al terminar, o barra de SAP, k texto si se lo saltean, f lo que falta
 const STEPS = [
   { n: 'Pedido', x: 'VA01', t: 'Crear pedido de venta', d: 'Pedido 10{d}', s: 'GRABADO',
-    m: [['SD', 'Ventas está creando el pedido'], ['FI', 'Finanzas revisa si podés pagar']],
+    m: [['SD', 'Ventas está creando el pedido'], ['FI', 'Finanzas revisa si puedes pagar']],
     b: '¡Quiero un auto {c}! SD anotó mi pedido y FI dijo que puedo pagar.', o: 'Se grabó el Pedido 10{d}',
-    k: 'SAP no sabe qué auto querés. ¡Primero hacé el pedido!', f: 'el pedido' },
+    k: 'SAP no sabe qué auto quieres. ¡Primero haz el pedido!', f: 'el pedido' },
   { n: 'Fábrica', x: 'CO01', t: 'Crear orden de fabricación', d: 'Orden 20{d}', s: 'GRABADA',
     m: [['PP', 'Producción está fabricando tu auto'], ['MM', 'Compras trae las piezas'], ['QM', 'Calidad revisa la calidad'], ['CO', 'Costos calcula el costo']],
     b: '¡PP armó mi auto, MM trajo las piezas y QM lo revisó!', o: 'Orden 20{d} (del Pedido 10{d})',
     k: 'Tu auto todavía no existe. ¡Primero la fábrica lo tiene que armar!', f: 'la orden de fabricación' },
   { n: 'Camión', x: 'VL01N', t: 'Crear entrega', d: 'Entrega 80{d}', s: 'GRABADA',
     m: [['LE', 'Logística está preparando el camión'], ['MM', 'Compras saca el auto del depósito'], ['FI', 'Finanzas anota el movimiento']],
-    b: '¡LE subió mi auto al camión rumbo a la concesionaria!', o: 'Entrega 80{d} (del Pedido 10{d})',
-    k: 'Tu auto sigue en la fábrica. ¡Primero subilo al camión!', f: 'la entrega' },
+    b: '¡LE subió mi auto al camión rumbo a la automotora!', o: 'Entrega 80{d} (del Pedido 10{d})',
+    k: 'Tu auto sigue en la fábrica. ¡Primero súbelo al camión!', f: 'la entrega' },
   { n: 'Factura', x: 'VF01', t: 'Crear factura', d: 'Factura 90{d}', s: 'GRABADA',
     m: [['SD', 'Ventas está haciendo la factura'], ['FI', 'Finanzas anota la plata'], ['CO', 'Costos mide la ganancia']],
     b: 'SD hizo la factura y FI anotó cuánto debo pagar.', o: 'Factura 90{d} (de la Entrega 80{d})',
     k: 'Nadie sabe cuánto cuesta. ¡Primero la factura!', f: 'la factura' },
-  { n: 'Chapita', x: 'REGISTRO', t: 'Patentamiento', d: 'Patente {p}', s: 'ANOTADA',
-    m: [[0, 'Fuera de SAP: el Registro Automotor da la patente'], ['SD', 'Ventas anota la patente']],
-    b: '¡El Registro Automotor le dio chapita a mi auto: {p}!', o: 'Patente {p} anotada en SAP',
-    k: 'Sin chapita no podés salir a la calle. ¡Primero la chapita!', f: 'la chapita' },
+  { n: 'Patente', x: 'REGISTRO', t: 'Patentamiento', d: 'Patente {p}', s: 'ANOTADA',
+    m: [[0, 'Fuera de SAP: el Registro Civil da la patente'], ['SD', 'Ventas anota la patente']],
+    b: '¡El Registro Civil le dio patente a mi auto: {p}!', o: 'Patente {p} anotada en SAP',
+    k: 'Sin patente no puedes salir a la calle. ¡Primero la patente!', f: 'la patente' },
   { n: 'Llaves', x: 'VA03', t: 'Ver pedido', d: '¡Llaves entregadas!', s: '¡COMPLETO!',
     m: [['SD', 'Ventas revisa que el pedido esté completo'], ['CO', 'Costos calcula cuánto ganó la empresa']],
     b: '¡Las llaves! ¡El auto es mío!', o: 'Pedido 10{d}: ¡todo completo!', k: '', f: 'las llaves' },
@@ -129,11 +129,11 @@ const INC = [
 // Dificultad: [nombre, imprevistos, bloqueo por error (ms), pista en el camino, castigo por error (ms)]
 const DIF = [['FÁCIL', 1, 600, 1, 0], ['NORMAL', 3, 1200, 0, 0], ['DIFÍCIL', 4, 1200, 0, 2000]];
 // Rival de la máquina (modo solo y desafío): [nombre, segundos que tarda en llevarse el auto]
-const RIV = [['Concesionaria del barrio', 44], ['Agencia oficial', 54], ['Fábrica express', 58]];
+const RIV = [['Automotora del barrio', 44], ['Agencia oficial', 54], ['Fábrica express', 58]];
 const TIPS = [
-  'Cada papel nace del anterior: Pedido, Fábrica, Camión, Factura, Chapita y Llaves.',
+  'Cada papel nace del anterior: Pedido, Fábrica, Camión, Factura, Patente y Llaves.',
   'Plata: FI. Piezas: MM. Calidad: QM. Camión: LE. Costos: CO.',
-  '¡Sin errores! Ahora elegí más rápido: el orden es siempre el mismo.',
+  '¡Sin errores! Ahora elige más rápido: el orden es siempre el mismo.',
 ];
 const FACTS = [
   'SD viene de «Sales and Distribution»: ventas y distribución.',
@@ -145,11 +145,11 @@ const FACTS = [
   'CO viene de «Controlling»: el control de los costos.',
   'VA01 crea un pedido y VA03 lo muestra: en muchas transacciones, 01 crea, 02 modifica y 03 muestra.',
   'En SAP cada documento recuerda de cuál nació: eso se llama flujo de documentos.',
-  'La patente Mercosur de Argentina tiene 2 letras, 3 números y 2 letras.',
+  'Desde 2007, las patentes de Chile tienen 4 letras y 2 números.',
 ];
 const fact = () => '¿Sabías que…? ' + FACTS[rnd(FACTS.length)];
 
-const CH = [['Abuelo', 'El'], ['Abuela', 'La'], ['Nene', 'El'], ['Nena', 'La'], ['Gaucho', 'El'], ['Oficinista', 'La']];
+const CH = [['Abuelo', 'El'], ['Abuela', 'La'], ['Niño', 'El'], ['Niña', 'La'], ['Huaso', 'El'], ['Oficinista', 'La']];
 const COL = [['rojo', 0xe63946], ['celeste', 0x4fb3ff], ['verde', 0x2fb35a], ['amarillo', 0xffc61a]];
 
 // ---------- Utilidades ----------
@@ -158,8 +158,8 @@ const shuf = a => Phaser.Utils.Array.Shuffle(a);
 const fmt = t => (t / 1000).toFixed(1).replace('.', ',');
 const wait = (s, ms) => new Promise(r => s.time.delayedCall(ms, r));
 const plateTxt = () => {
-  const L = () => String.fromCharCode(65 + rnd(26));
-  return L() + L() + ' ' + Phaser.Math.Between(100, 999) + ' ' + L() + L();
+  const L = () => 'BCDFGHJKLPRSTVWXYZ'[rnd(18)];
+  return L() + L() + '·' + L() + L() + '·' + Phaser.Math.Between(10, 99);
 };
 const who = p => CH[p.ch][1] + ' ' + CH[p.ch][0];
 
@@ -175,10 +175,11 @@ function plate(s, x, y, w, h, txt, z) {
   g.fillStyle(LN).fillRoundedRect(-w / 2 + 5, -h / 2 + 6, w, h, 10)
     .fillStyle(0xffffff).fillRoundedRect(-w / 2, -h / 2, w, h, 10)
     .lineStyle(3, LN).strokeRoundedRect(-w / 2, -h / 2, w, h, 10)
-    .fillStyle(BLUE).fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, 22)
-    .fillStyle(0x74acdf).fillRect(-w / 2 + 10, -h / 2 + 6, 24, 16)
-    .fillStyle(0xffffff).fillRect(-w / 2 + 10, -h / 2 + 11, 24, 6);
-  c.add([g, T(s, 0, -h / 2 + 14, 'ARGENTINA', 16), T(s, 0, 11, txt, z, '#1c2a3a')]);
+    .lineStyle(2, LN).strokeRoundedRect(-w / 2 + 6, -h / 2 + 6, w - 12, h - 12, 6);
+  const fy = h / 2 - 21;
+  g.fillStyle(0xd52b1e).fillRect(-66, fy + 8, 24, 8).fillStyle(0x0039a6).fillRect(-66, fy, 8, 8)
+    .fillStyle(0xffffff).fillCircle(-62, fy + 4, 1.6).lineStyle(1, LN).strokeRect(-66, fy, 24, 16);
+  c.add([g, T(s, 0, h / 2 - 13, 'CHILE', 16, '#1c2a3a'), T(s, 0, -7, txt, z, '#1c2a3a')]);
   return c;
 }
 function badge(s, x, y, m, w, h) {
@@ -312,8 +313,8 @@ class Boot extends Phaser.Scene {
       if (i < 2) g.strokeCircle(26, 31, 5).strokeCircle(38, 31, 5).lineBetween(31, 31, 33, 31);
       if (i == 0) g.fillStyle(0xf1f3f5).fillEllipse(32, 40, 16, 5);
       if (i == 3) g.fillStyle(0xff4f8b).fillTriangle(40, 11, 49, 6, 49, 16);
-      if (i == 4) g.fillStyle(0x3a2a1a).fillEllipse(32, 40, 16, 5).fillStyle(0x2b2b2b).fillRoundedRect(20, 2, 24, 13, 4)
-        .fillEllipse(32, 15, 50, 9).fillStyle(0xe03131).fillTriangle(24, 47, 40, 47, 32, 56);
+      if (i == 4) g.fillStyle(0x3a2a1a).fillEllipse(32, 40, 16, 5).fillStyle(0xd9b26a).fillRoundedRect(20, 2, 24, 13, 4)
+        .fillEllipse(32, 15, 50, 9).fillStyle(0x7a1f1f).fillRect(20, 10, 24, 3).fillStyle(0xe03131).fillTriangle(24, 47, 40, 47, 32, 56);
       if (i == 5) g.fillStyle(0xffffff).fillTriangle(25, 47, 39, 47, 32, 53).fillStyle(0xe03131).fillTriangle(30, 50, 34, 50, 32, 62);
       tex('c' + i, 64, 64);
     }
@@ -347,8 +348,9 @@ class Boot extends Phaser.Scene {
       .lineStyle(2, O).fillStyle(0x2fb35a).fillCircle(29, 30, 7).strokeCircle(29, 30, 7);
     tex('i3', 48, 48);
     g.lineStyle(3, O).fillStyle(0xffffff).fillRoundedRect(2, 12, 44, 24, 4).strokeRoundedRect(2, 12, 44, 24, 4)
-      .fillStyle(BLUE).fillRect(4, 14, 40, 6).fillStyle(0x1c2a3a);
-    for (let i = 0; i < 5; i++) g.fillRect(8 + i * 7 + (i > 1 ? 2 : 0), 24, 5, 8);
+      .fillStyle(0x1c2a3a);
+    for (let i = 0; i < 6; i++) g.fillRect(7 + i * 6 + (i >> 1) * 2, 17, 4, 10);
+    g.fillRect(18, 30, 12, 2);
     tex('i4', 48, 48);
     g.lineStyle(3, O).fillStyle(0xffc21a).fillRect(20, 21, 24, 7).strokeRect(20, 21, 24, 7)
       .fillRect(36, 27, 5, 7).fillRect(29, 27, 5, 6).fillCircle(14, 24, 11).strokeCircle(14, 24, 11)
@@ -386,7 +388,7 @@ class Title extends Phaser.Scene {
       this.tweens.add({ targets: o, x: -30, duration: 7000, onComplete: () => o.destroy() });
       this.tweens.add({ targets: o, y: 178, duration: 180, yoyo: true, repeat: 19 });
     } });
-    plate(this, W / 2, 64, 500, 100, '¡COMPRÁ TU AUTO!', 46).setDepth(2);
+    plate(this, W / 2, 64, 500, 100, '¡COMPRA TU AUTO!', 46).setDepth(2);
     const c = car(this, 120, 188, 0, .9), a = this.add.image(60, 180, 'c0').setScale(.8);
     this.tweens.add({ targets: [c, a], x: '+=560', duration: 5200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     // Menú con el joystick
@@ -445,7 +447,7 @@ class Select extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(BG).fadeIn(220, 4, 6, 10); this.lv = 0;
     const n = d.n, w = W / n;
     this.d = d;
-    T(this, W / 2, 30, d.m ? 'Modo desafío: 3 etapas, cada una más difícil' : `Elegí tu personaje y color · ${DIF[d.dif][0]}`, 26, '#ffc933');
+    T(this, W / 2, 30, d.m ? 'Modo desafío: 3 etapas, cada una más difícil' : `Elige tu personaje y color · ${DIF[d.dif][0]}`, 26, '#ffc933');
     this.S = [];
     for (let i = 0; i < n; i++) {
       const x = i * w, pc = i ? P2C : P1C, st = { ch: i ? 3 : 0, col: i ? 2 : 0, r: 0 }, g = this.add.graphics();
@@ -464,7 +466,7 @@ class Select extends Phaser.Scene {
       const cw = Math.min(62, (w - 40) / 6);
       for (let j = 0; j < 6; j++) st.th.push(this.add.image(x + w / 2 + (j - 2.5) * cw, 322, 'c' + j).setScale(cw / 70));
       st.nm = T(this, x + w / 2, 364, '', 18, '#ffc933');
-      T(this, x + w / 2, 404, '¿De qué color lo querés?  ↑ ↓', 18, '#c9d3df');
+      T(this, x + w / 2, 404, '¿De qué color lo quieres?  ↑ ↓', 18, '#c9d3df');
       st.hg = this.add.graphics();
       st.x = x; st.w = w; st.cw = cw;
       st.rd = T(this, x + w / 2, 528, '', 20, '#5bd17f');
@@ -731,14 +733,14 @@ class Panel {
     for (let i = 0; i < 6; i++) {
       const S = STEPS[i];
       this.cs = i;
-      this.az('¿Qué sigue?', 'Elegí con el joystick'); this.bar('', this.wide ? 'Esperando el próximo paso…' : 'Esperando…');
+      this.az('¿Qué sigue?', 'Elige con el joystick'); this.bar('', this.wide ? 'Esperando el próximo paso…' : 'Esperando…');
       const o = shuf([i, ...shuf([0, 1, 2, 3, 4, 5].filter(j => j != i)).slice(0, 3)]);
       if (s.D[3]) this.hint(i);
       await this.choose(o.map(j => ({ s: j })), o.indexOf(i), it => {
         const j = it.s;
         this.es++;
         if (j > i) { this.say(`¿${STEPS[j].n}? ¡Todavía no! ${S.k}`, 3); this.status('Error: falta ' + S.f, ER); }
-        else { this.say('¡Eso ya está hecho! Mirá tu camino: ¿qué sigue?', 3); this.status(this.F(STEPS[j].d) + ' ya existe', WA); }
+        else { this.say('¡Eso ya está hecho! Mira tu camino: ¿qué sigue?', 3); this.status(this.F(STEPS[j].d) + ' ya existe', WA); }
         s.r(`¡${J} se equivocó de paso!`);
       });
       await this.z(280 * this.sp);
@@ -777,7 +779,7 @@ class Panel {
       // Sello perfecto: A justo cuando el aro toca el sello
       if (i < 5) {
         this.stp = s.time.now; this.sealT.setColor('#1d8644');
-        this.a2.setText('¡Apretá A cuando el aro toque el sello!').setY(this.ay + 44);
+        this.a2.setText('¡Aprieta A cuando el aro toque el sello!').setY(this.ay + 44);
         s.tweens.add({ targets: this.ring.setVisible(true).setAlpha(1), radius: { from: 72, to: 16 }, duration: 600, onComplete: () => this.ring.setVisible(false) });
       }
       snd('stamp'); s.prog(this);
@@ -848,7 +850,7 @@ class Play extends Phaser.Scene {
       this.top.setX(14).setOrigin(0, .5).setFontSize(16).setText(this.def);
     }
     if (d.demo) {
-      const b = T(this, W / 2, 140, 'DEMO · Apretá START para jugar', 24, '#ffc933', { stroke: '#04060a', strokeThickness: 6 }).setDepth(9);
+      const b = T(this, W / 2, 140, 'DEMO · Aprieta START para jugar', 24, '#ffc933', { stroke: '#04060a', strokeThickness: 6 }).setDepth(9);
       this.tweens.add({ targets: b, alpha: .3, duration: 600, yoyo: true, repeat: -1 });
     }
     this.big = T(this, W / 2, 300, '', 120, '#ffc933', { stroke: '#04060a', strokeThickness: 12 }).setDepth(9);
@@ -934,10 +936,10 @@ class Play extends Phaser.Scene {
     }
     for (let i = 0; i < this.n; i++) {
       const P = `P${i + 1}_`, p = this.P[i];
-      if (btnA(P)) { if (p.stp) p.stamp(); else if (p.pick) { p.a2.setText('¡Usá el joystick! ← ↓ ↑ →'); snd('tick'); } }
+      if (btnA(P)) { if (p.stp) p.stamp(); else if (p.pick) { p.a2.setText('¡Usa el joystick! ← ↓ ↑ →'); snd('tick'); } }
       if (btnB(P)) {
         if (this.quit == P) return go(this, 'Title');
-        this.quit = P; this.rel(`¿J${i + 1} quiere salir al inicio? Apretá B otra vez`);
+        this.quit = P; this.rel(`¿J${i + 1} quiere salir al inicio? Aprieta B otra vez`);
         this.time.delayedCall(2000, () => this.quit = 0);
       }
     }
@@ -961,7 +963,7 @@ class Result extends Phaser.Scene {
     // Nuevo fantasma: la partida suelta más rápida de esta dificultad
     if (n < 2 && !lost && !d.m && P.sp.length == 6 && (!GH[lv] || P.t < GH[lv][5])) { GH[lv] = P.sp; sSet(GKEY, GH); }
     if (best > BEST) { BEST = best; sSet(RKEY, BEST); }
-    // Columna izquierda: título, auto, chapita y puntaje
+    // Columna izquierda: título, auto, patente y puntaje
     N(lost ? (d.m ? `Llegaste a la etapa ${d.st + 1}/3` : '¡El rival ganó!') :
       d.m ? (d.st < 2 ? `¡Etapa ${d.st + 1} superada!` : '¡Ganaste el desafío!') :
       n > 1 ? `¡Ganó el Jugador ${d.w + 1}!` : '¡El auto es tuyo!', 30, 28, lost ? '#ff6b6b' : '#ffc933');
@@ -978,15 +980,15 @@ class Result extends Phaser.Scene {
     N(lost ? `${who(P)} hizo ${P.k} de 6 pasos  ${'●'.repeat(P.k)}${'○'.repeat(6 - P.k)}` :
       `${who(P)} se llevó su auto ${COL[P.col][0]} en ${fmt(P.t)}\u00a0s.`, 270);
     if (d.m && lost) N(`Puntaje del desafío: ${this.acc}`, 296, 18, '#ffc933');
-    else N((e ? `Con ${e} error${e > 1 ? 'es' : ''}` : 'Sin errores') + ' · ' + ['Gurú del circuito SAP', `Consultor${CH[P.ch][1] == 'La' ? 'a' : ''} SAP en ascenso`, 'Pasante con ganas', 'Cliente que se hizo un lío'][e ? e < 3 ? 1 : e < 5 ? 2 : 3 : 0], 296, 17, e ? '#eef3f9' : '#5bd17f');
+    else N((e ? `Con ${e} error${e > 1 ? 'es' : ''}` : 'Sin errores') + ' · ' + ['Gurú del circuito SAP', `Consultor${CH[P.ch][1] == 'La' ? 'a' : ''} SAP en ascenso`, 'Practicante con ganas', 'Cliente que se enredó'][e ? e < 3 ? 1 : e < 5 ? 2 : 3 : 0], 296, 17, e ? '#eef3f9' : '#5bd17f');
     // Consejo para quien perdió
     const L = lost ? P : n > 1 ? d.pl[1 - d.w] : 0;
-    if (n < 2 && !lost && d.rv) N(`¡Le ganaste a ${RIV[lv][0]} por ${fmt(d.rv - P.t)}\u00a0s!`, 322, 16, '#5bd17f');
+    if (n < 2 && !lost && d.rv) N(`¡Le ganaste al rival por ${fmt(d.rv - P.t)}\u00a0s!`, 322, 16, '#5bd17f');
     if (n > 1) N(`J${2 - d.w} llegó a ${L.k} de 6 pasos  ${'●'.repeat(L.k)}${'○'.repeat(6 - L.k)}`, 322, 17, '#c9d3df');
     if (L) T(this, 200, 386, (n > 1 ? `Consejo J${2 - d.w}: ` : 'Consejo: ') + TIPS[L.es && L.es >= L.em ? 0 : L.em ? 1 : 2], 16, '#74c0fc', { fontStyle: 'normal', wordWrap: { width: 370 } });
     else {
-      const pt = N('', 330, 22, '#ffc933');
-      N(`Rapidez +${Math.round((100 - P.t / 1000) * 10 * [1, 1.5, 2][lv])}  ·  Errores −${e * 50}  ·  Racha +${P.top * 10}`, 358, 16, '#c9d3df');
+      const pt = N('', 348, 22, '#ffc933');
+      N(`Rapidez +${Math.round((100 - P.t / 1000) * 10 * [1, 1.5, 2][lv])}  ·  Errores −${e * 50}  ·  Racha +${P.top * 10}`, 376, 16, '#c9d3df');
       this.tweens.addCounter({ from: 0, to: pts, duration: 900, delay: 300, onUpdate: c => pt.setText(`Puntaje: ${Math.round(c.getValue())}` + (d.m ? `  ·  Desafío: ${this.acc}` : '')) });
     }
     if (n > 1) N(`Puntaje: ${pts}`, 348, 18, '#ffc933');
@@ -998,7 +1000,7 @@ class Result extends Phaser.Scene {
     if (this.q) {
       this.L = [0, 0, 0]; this.li = 0; this.left = 15;
       if (sc > (R[0] || { s: 0 }).s) this.cameras.main.flash(400);
-      this.lo.add(N(sc > (R[0] || { s: 0 }).s ? '¡Nuevo récord! Poné tus iniciales' : '¡Entraste al top 5! Poné tus iniciales', 420, 18, '#4aa3ef'));
+      this.lo.add(N(sc > (R[0] || { s: 0 }).s ? '¡Nuevo récord! Pon tus iniciales' : '¡Entraste al top 5! Pon tus iniciales', 420, 18, '#4aa3ef'));
       this.lg = this.add.graphics(); this.lo.add(this.lg);
       this.lt = [0, 1, 2].map(i => { const t = T(this, 150 + i * 50, 470, 'A', 30, '#151a23'); this.lo.add(t); return t; });
       this.lo.add(N('Joystick ↑ ↓: letra   ·   A: confirmar', 516, 16, '#c9d3df'));
